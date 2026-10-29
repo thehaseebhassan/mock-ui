@@ -4,7 +4,8 @@ import {
   ArrowLeftRight, UserRoundCheck, Globe2, Diamond, CreditCard,
   Gift, ChevronLeft, Plus, X, Check, ArrowRight, Wallet,
   ChartNoAxesColumnIncreasing, FileText, Network, Grid2X2,
-  MoreHorizontal, Smartphone, AtSign, Hash, ShieldCheck
+  MoreHorizontal, Smartphone, AtSign, Hash, ShieldCheck,
+  Calendar, Share, RefreshCw
 } from 'lucide-react';
 
 const money = (n) => new Intl.NumberFormat('en-AU', {
@@ -27,7 +28,53 @@ function transactionStamp(date) {
   return `${pick('day')} ${pick('month')} ${pick('year')} ${hour}:${minute} ${pick('dayPeriod').toUpperCase()} (Syd/Melb time)`;
 }
 
-function DemoMark() { return <div className="demo-mark">DEMO · NOT A REAL PAYMENT</div>; }
+function sydDay(date) {
+  return new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Sydney',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(date);
+}
+
+function sydDateKey(date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+const DUMMY_TXNS = [
+  { daysAgo: 1, name: 'Woolworths', detail: 'Groceries', amount: 86.40 },
+  { daysAgo: 1, name: 'Netflix', detail: 'Entertainment', amount: 18.99 },
+  { daysAgo: 2, name: 'Caltex (Moonah)', detail: 'Vehicle & transport', amount: 59.65 },
+  { daysAgo: 2, name: 'Ampol', detail: 'Vehicle & transport', amount: 72.10 },
+  { daysAgo: 3, name: 'Coles', detail: 'Groceries', amount: 42.15 },
+  { daysAgo: 3, name: 'Uber', detail: 'Transport', amount: 24.80 },
+  { daysAgo: 4, name: 'Aldi', detail: 'Groceries', amount: 63.20 },
+  { daysAgo: 4, name: 'Chemist Warehouse', detail: 'Health', amount: 31.45 },
+  { daysAgo: 5, name: 'Spotify', detail: 'Entertainment', amount: 13.99 },
+  { daysAgo: 5, name: 'Kmart', detail: 'Shopping', amount: 54.00 },
+  { daysAgo: 6, name: 'Bunnings', detail: 'Home', amount: 47.50 },
+  { daysAgo: 6, name: "McDonald's", detail: 'Eating out', amount: 16.30 },
+];
+
+function txDate(daysAgo) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() - daysAgo);
+  return date;
+}
+
+function formatMobile(value) {
+  let digits = String(value || '').replace(/\D/g, '');
+  if (digits.startsWith('61')) digits = digits.slice(2);
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  return digits ? `+61-${digits}` : '';
+}
+
 function RoundButton({children, onClick, label}) {
   return <button className="round-button" aria-label={label} onClick={onClick}>{children}</button>;
 }
@@ -43,6 +90,7 @@ export default function App() {
   const [saveContact, setSaveContact] = useState(true);
   const [message, setMessage] = useState('');
   const [paidAt, setPaidAt] = useState(null);
+  const [payment, setPayment] = useState(null);
 
   const update = (key, value) => setRecipient(prev => ({...prev, [key]: value}));
   const back = (target) => { setMessage(''); setScreen(target); };
@@ -56,10 +104,22 @@ export default function App() {
     setMessage('');
     setScreen('review');
   };
+  const confirmPayment = () => {
+    const when = new Date();
+    setPaidAt(when);
+    setPayment({
+      name: recipient.name,
+      amount: recipient.amount,
+      description: recipient.description || 'PayID',
+      paidAt: when,
+    });
+    setMessage('');
+    setScreen('receipt');
+  };
+
+  const payId = tab === 'Mobile' ? formatMobile(recipient.id) : recipient.id;
 
   return <main className="app-shell">
-    <DemoMark />
-
     {screen === 'pin' && <section className="screen pin-screen">
       <div className="pin-brand"><BrandMark /></div>
       <h1 className="pin-title">Log on</h1>
@@ -72,11 +132,11 @@ export default function App() {
         <div className="tool-pill"><button aria-label="Messages"><Mail/><span className="notification-dot"/></button><button aria-label="Help"><CircleHelp/></button></div>
       </header>
       <h1 className="greeting">Hi <span>Haseeb</span></h1>
-      <div className="member-tag">Everyday Plus · DEMO</div>
+      <div className="member-tag">Everyday Plus</div>
       <div className="search-bar"><Search/><span>Search “Scheduled payments”</span><Mic/></div>
       <div className="home-spacer"/>
       <div className="separator"/>
-      <button className="smart-card" onClick={goPay}>
+      <button className="smart-card" onClick={() => setScreen('account')}>
         <span className="card-heading">Smart Access <MoreHorizontal/></span>
         <span className="card-bottom"><span className="transfer-chip">Transfer</span><span className="balance"><strong>$1,960.75</strong><small>Balance $2,967.71</small></span></span>
       </button>
@@ -137,7 +197,7 @@ export default function App() {
       <div className="segmented">{['Mobile','Email','Other'].map(x=><button key={x} className={tab===x?'active':''} onClick={()=>{setTab(x);update('id','');}}>{x}</button>)}</div>
       <div className="form-fields">
         <label>{tab === 'Mobile' ? 'Mobile number' : tab === 'Email' ? 'Email address' : 'PayID'}</label>
-        <div className="line-input"><span>{tab==='Mobile'?<Smartphone/>:tab==='Email'?<AtSign/>:<Hash/>}</span><input value={recipient.id} onChange={e=>update('id',e.target.value)} placeholder={tab==='Mobile'?'04xx xxx xxx':tab==='Email'?'name@example.com':'Enter PayID'} inputMode={tab==='Mobile'?'tel':'text'} /></div>
+        <div className="line-input"><span>{tab==='Mobile'?<Smartphone/>:tab==='Email'?<AtSign/>:<Hash/>}</span><input value={tab==='Mobile'?formatMobile(recipient.id):recipient.id} onChange={e=>update('id', tab==='Mobile'?formatMobile(e.target.value):e.target.value)} placeholder={tab==='Mobile'?'+61-4xxxxxxxx':tab==='Email'?'name@example.com':'Enter PayID'} inputMode={tab==='Mobile'?'tel':'text'} /></div>
         <label>Recipient name</label>
         <div className="line-input"><UserRound/><input value={recipient.name} onChange={e=>update('name',e.target.value)} placeholder="Full name" /></div>
         <label>Amount (AUD)</label>
@@ -158,30 +218,74 @@ export default function App() {
       <div className="review-amount">{money(recipient.amount)}</div>
       <div className="review-card">
         <Detail label="To" value={recipient.name}/>
-        <Detail label={tab==='Mobile'?'PayID mobile':tab==='Email'?'PayID email':'PayID'} value={recipient.id}/>
+        <Detail label={tab==='Mobile'?'PayID mobile':tab==='Email'?'PayID email':'PayID'} value={payId}/>
         <Detail label="From" value="Smart Access ·· 6979"/>
         <Detail label="Description" value={recipient.description || 'No description'}/>
-        <Detail label="Payment type" value="PayID · Demo only"/>
+        <Detail label="Payment type" value="PayID"/>
       </div>
-      <div className="demo-notice"><ShieldCheck size={20}/><span>DEMO ONLY — this does not contact a bank or send funds.</span></div>
-      <button className="primary-button confirm-button" onClick={() => {setPaidAt(new Date());setScreen('receipt');setMessage('');}}>Confirm demo payment <ArrowRight size={19}/></button>
+      <button className="primary-button confirm-button" onClick={confirmPayment}>Confirm demo payment <ArrowRight size={19}/></button>
       <button className="secondary-button" onClick={() => back('payid')}>Edit details</button>
     </section>}
 
     {screen === 'receipt' && <section className="screen receipt-screen">
-      <div className="receipt-demo-banner">DEMO RECEIPT · NOT PROOF OF PAYMENT</div>
       <div className="success-icon"><Check/></div>
       <h1>Paid {money(recipient.amount)}</h1>
       <h2>to {recipient.name}</h2>
-      <p className="receipt-id">{recipient.id}</p>
+      <p className="receipt-id">{payId}</p>
       <p className="receipt-number">Receipt no. N50937362892993</p>
       <div className="receipt-rule"/>
       <div className="receipt-detail"><strong>From</strong><span>Smart Access<br/>(087-123 6516 8989)</span></div>
       <div className="receipt-detail"><strong>Description</strong><span>{recipient.description || 'No description'}</span></div>
       <div className="receipt-detail"><strong>Transaction Date</strong><span>{paidAt ? transactionStamp(paidAt) : ''}</span></div>
-      <div className="receipt-watermark">DEMO ONLY</div>
-      <button className="primary-button receipt-button" onClick={() => {setRecipient({name:'',id:'',amount:'',description:'Loan return'});setScreen('home');}}>Done</button>
-      <button className="secondary-button" onClick={() => back('review')}>Back to details</button>
+      <button className="back-details" onClick={() => back('review')}>Back to details</button>
+    </section>}
+
+    {screen === 'account' && <section className="screen account-screen">
+      <header className="simple-header">
+        <RoundButton label="Back" onClick={() => back('home')}><ChevronLeft/></RoundButton>
+        <span className="header-label">Smart Access</span>
+        <span className="header-spacer"/>
+      </header>
+      <p className="acct-label">Available</p>
+      <p className="acct-available">$1,901.10</p>
+      <p className="acct-line"><span>Balance</span> $1,967.71</p>
+      <p className="acct-line"><span>Pending</span> -$66.61</p>
+      <div className="acct-actions">
+        <button type="button">Transfer</button>
+        <button type="button" onClick={goPay}>Pay</button>
+        <button type="button">Manage</button>
+      </div>
+      <div className="acct-account">
+        <span>BSB 087-123</span>
+        <span>Account 6516 8989</span>
+        <Share size={18} aria-hidden="true"/>
+      </div>
+      <div className="acct-info">
+        <RefreshCw size={22}/>
+        <span><strong>See 13 Oct – 12 Nov spending</strong><small>-$4,653.53 spend this month</small></span>
+      </div>
+      <div className="acct-info">
+        <Calendar size={22}/>
+        <span><strong>Nothing scheduled in the next 7 days</strong><small>See future payments</small></span>
+      </div>
+      <div className="acct-tx">
+        {payment && <div className="acct-group">
+          <div className="acct-day">{sydDay(payment.paidAt)} {sydDateKey(payment.paidAt) === sydDateKey(new Date()) ? <em>Today</em> : null}</div>
+          <div className="acct-tx-row">
+            <span className="acct-avatar">{payment.name.trim().charAt(0).toUpperCase()}</span>
+            <span className="acct-tx-copy"><strong>PENDING: {payment.name}</strong><small>{payment.description}</small></span>
+            <b>-{money(payment.amount).replace(/^-/, '')}</b>
+          </div>
+        </div>}
+        {[1,2,3,4,5,6].map(day => <div className="acct-group" key={day}>
+          <div className="acct-day">{sydDay(txDate(day))}</div>
+          {DUMMY_TXNS.filter(tx => tx.daysAgo === day).map(tx => <div className="acct-tx-row" key={tx.name}>
+            <span className="acct-avatar">{tx.name.charAt(0)}</span>
+            <span className="acct-tx-copy"><strong>{tx.name}</strong><small>{tx.detail}</small></span>
+            <b>-{money(tx.amount)}</b>
+          </div>)}
+        </div>)}
+      </div>
     </section>}
   </main>;
 }
