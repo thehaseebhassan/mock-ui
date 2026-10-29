@@ -3,6 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      (function () {
+        var meta = document.querySelector('meta[name="viewport"]');
+        var layoutWidth = 520;
+        function deviceWidth() {
+          var portrait = window.matchMedia('(orientation: portrait)').matches;
+          var sw = window.screen.width;
+          var sh = window.screen.height;
+          return portrait ? Math.min(sw, sh) : Math.max(sw, sh);
+        }
+        function fit() {
+          var width = deviceWidth();
+          if (!width || width >= layoutWidth) {
+            meta.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+            return;
+          }
+          var scale = width / layoutWidth;
+          meta.setAttribute('content', 'width=' + layoutWidth + ', initial-scale=' + scale.toFixed(4) + ', viewport-fit=cover');
+        }
+        fit();
+        window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+      })();
+    </script>
     <meta name="theme-color" content="#1d1d1d" />
     <title>Everyday — Banking Demo</title>
   </head>

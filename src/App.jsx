@@ -11,9 +11,22 @@ const money = (n) => new Intl.NumberFormat('en-AU', {
   style: 'currency', currency: 'AUD'
 }).format(Number(n || 0));
 
-function StatusBar() {
-  return <div className="statusbar"><span>15:25</span><div className="status-right"><span className="signal"><i/><i/><i/><i/></span><span className="wifi">⌁</span><span className="battery">89</span></div></div>;
+function transactionStamp(date) {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Sydney',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h12',
+  }).formatToParts(date);
+  const pick = (type) => parts.find((part) => part.type === type)?.value ?? '';
+  const hour = pick('hour').padStart(2, '0');
+  const minute = pick('minute').padStart(2, '0');
+  return `${pick('day')} ${pick('month')} ${pick('year')} ${hour}:${minute} ${pick('dayPeriod').toUpperCase()} (Syd/Melb time)`;
 }
+
 function DemoMark() { return <div className="demo-mark">DEMO · NOT A REAL PAYMENT</div>; }
 function RoundButton({children, onClick, label}) {
   return <button className="round-button" aria-label={label} onClick={onClick}>{children}</button>;
@@ -29,6 +42,7 @@ export default function App() {
   const [recipient, setRecipient] = useState({name:'', id:'', amount:'', description:'Loan return'});
   const [saveContact, setSaveContact] = useState(true);
   const [message, setMessage] = useState('');
+  const [paidAt, setPaidAt] = useState(null);
 
   const update = (key, value) => setRecipient(prev => ({...prev, [key]: value}));
   const back = (target) => { setMessage(''); setScreen(target); };
@@ -44,7 +58,6 @@ export default function App() {
   };
 
   return <main className="app-shell">
-    <StatusBar />
     <DemoMark />
 
     {screen === 'pin' && <section className="screen pin-screen">
@@ -151,22 +164,21 @@ export default function App() {
         <Detail label="Payment type" value="PayID · Demo only"/>
       </div>
       <div className="demo-notice"><ShieldCheck size={20}/><span>DEMO ONLY — this does not contact a bank or send funds.</span></div>
-      <button className="primary-button confirm-button" onClick={() => {setScreen('receipt');setMessage('');}}>Confirm demo payment <ArrowRight size={19}/></button>
+      <button className="primary-button confirm-button" onClick={() => {setPaidAt(new Date());setScreen('receipt');setMessage('');}}>Confirm demo payment <ArrowRight size={19}/></button>
       <button className="secondary-button" onClick={() => back('payid')}>Edit details</button>
     </section>}
 
     {screen === 'receipt' && <section className="screen receipt-screen">
       <div className="receipt-demo-banner">DEMO RECEIPT · NOT PROOF OF PAYMENT</div>
       <div className="success-icon"><Check/></div>
-      <h1>Demo payment<br/>prepared</h1>
-      <div className="receipt-amount">{money(recipient.amount)}</div>
+      <h1>Paid {money(recipient.amount)}</h1>
       <h2>to {recipient.name}</h2>
       <p className="receipt-id">{recipient.id}</p>
-      <p className="receipt-number">Demo reference: DEMO-{Date.now().toString().slice(-8)}</p>
+      <p className="receipt-number">Receipt no. N50937362892993</p>
       <div className="receipt-rule"/>
-      <div className="receipt-detail"><strong>From</strong><span>Smart Access (•••• 6979)</span></div>
+      <div className="receipt-detail"><strong>From</strong><span>Smart Access<br/>(087-123 6516 8989)</span></div>
       <div className="receipt-detail"><strong>Description</strong><span>{recipient.description || 'No description'}</span></div>
-      <div className="receipt-detail"><strong>Status</strong><span>Simulation only — no funds sent</span></div>
+      <div className="receipt-detail"><strong>Transaction Date</strong><span>{paidAt ? transactionStamp(paidAt) : ''}</span></div>
       <div className="receipt-watermark">DEMO ONLY</div>
       <button className="primary-button receipt-button" onClick={() => {setRecipient({name:'',id:'',amount:'',description:'Loan return'});setScreen('home');}}>Done</button>
       <button className="secondary-button" onClick={() => back('review')}>Back to details</button>
