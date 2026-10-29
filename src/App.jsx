@@ -86,7 +86,7 @@ export default function App() {
   const [screen, setScreen] = useState('pin');
   const [tab, setTab] = useState('Mobile');
   const [filter, setFilter] = useState('PayID');
-  const [recipient, setRecipient] = useState({name:'', id:'', amount:'', description:'Loan return'});
+  const [recipient, setRecipient] = useState({name:'', id:'', amount:'', description:'Service'});
   const [saveContact, setSaveContact] = useState(true);
   const [message, setMessage] = useState('');
   const [paidAt, setPaidAt] = useState(null);
@@ -246,7 +246,6 @@ export default function App() {
       <div className="receipt-detail"><strong>Description</strong><span>{recipient.description || 'No description'}</span></div>
       <div className="receipt-detail"><strong>Transaction Date</strong><span>{paidAt ? transactionStamp(paidAt) : ''}</span></div>
       <p className="osko-row"><span>Sent through</span> <b>Osko</b> <span className="osko-mark" aria-hidden="true"/></p>
-      <button className="siri-button" type="button"><span className="siri-orb" aria-hidden="true"/>Add to Siri</button>
     </section>}
 
     {screen === 'account' && <section className="screen account-screen">
