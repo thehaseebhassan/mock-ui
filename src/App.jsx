@@ -223,7 +223,7 @@ export default function App() {
         <Detail label="Description" value={recipient.description || 'No description'}/>
         <Detail label="Payment type" value="PayID"/>
       </div>
-      <button className="primary-button confirm-button" onClick={confirmPayment}>Confirm demo payment <ArrowRight size={19}/></button>
+      <button className="primary-button confirm-button" onClick={confirmPayment}>Confirm payment <ArrowRight size={19}/></button>
       <button className="secondary-button" onClick={() => back('payid')}>Edit details</button>
     </section>}
 
