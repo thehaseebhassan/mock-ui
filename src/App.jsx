@@ -245,7 +245,8 @@ export default function App() {
       <div className="receipt-detail"><strong>From</strong><span>Smart Access<br/>(087-123 6516 8989)</span></div>
       <div className="receipt-detail"><strong>Description</strong><span>{recipient.description || 'No description'}</span></div>
       <div className="receipt-detail"><strong>Transaction Date</strong><span>{paidAt ? transactionStamp(paidAt) : ''}</span></div>
-      <p className="receipt-note">We'll send this payment immediately.</p>
+      <p className="osko-row"><span>Sent through</span> <b>Osko</b> <span className="osko-mark" aria-hidden="true"/></p>
+      <button className="siri-button" type="button"><span className="siri-orb" aria-hidden="true"/>Add to Siri</button>
     </section>}
 
     {screen === 'account' && <section className="screen account-screen">
