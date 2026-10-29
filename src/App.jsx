@@ -4,7 +4,7 @@ import {
   ArrowLeftRight, UserRoundCheck, Globe2, Diamond, CreditCard,
   Gift, ChevronLeft, Plus, X, Check, ArrowRight, Wallet,
   ChartNoAxesColumnIncreasing, FileText, Network, Grid2X2,
-  MoreHorizontal, Delete, Smartphone, AtSign, Hash, ShieldCheck
+  MoreHorizontal, Smartphone, AtSign, Hash, ShieldCheck
 } from 'lucide-react';
 
 const money = (n) => new Intl.NumberFormat('en-AU', {
@@ -24,8 +24,6 @@ function BrandMark() {
 
 export default function App() {
   const [screen, setScreen] = useState('pin');
-  const [pin, setPin] = useState('');
-  const [pinError, setPinError] = useState('');
   const [tab, setTab] = useState('Mobile');
   const [filter, setFilter] = useState('PayID');
   const [recipient, setRecipient] = useState({name:'', id:'', amount:'', description:'Loan return'});
@@ -34,19 +32,6 @@ export default function App() {
 
   const update = (key, value) => setRecipient(prev => ({...prev, [key]: value}));
   const back = (target) => { setMessage(''); setScreen(target); };
-
-  function enterPin(digit) {
-    setPinError('');
-    const next = pin + digit;
-    setPin(next);
-    if (next.length === 4) {
-      if (next === '1234') {
-        setTimeout(() => { setPin(''); setScreen('home'); }, 180);
-      } else {
-        setTimeout(() => { setPin(''); setPinError('Incorrect demo PIN. Try 1234.'); }, 180);
-      }
-    }
-  }
 
   const goPay = () => { setFilter('All'); setScreen('pay'); };
   const goRecipient = () => {
@@ -64,16 +49,8 @@ export default function App() {
 
     {screen === 'pin' && <section className="screen pin-screen">
       <div className="pin-brand"><BrandMark /></div>
-      <h1 className="pin-title">Enter your PIN</h1>
-      <div className="pin-dots" aria-label={`${pin.length} of 4 digits entered`}>
-        {[0,1,2,3].map(i => <span className={pin.length > i ? 'filled' : ''} key={i} />)}
-      </div>
-      {pinError && <p className="error-text">{pinError}</p>}
-      <button className="text-link forgot" onClick={() => {setPin(''); setPinError('For this demo, use PIN 1234.');}}>Forgotten PIN?</button>
-      <button className="text-link" onClick={() => {setPin(''); setPinError('For this demo, use PIN 1234.');}}>Log on with demo password</button>
-      <div className="pin-pad">
-        {[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map((v,i) => <button key={i} disabled={v === ''} onClick={() => v === '⌫' ? setPin(p => p.slice(0,-1)) : enterPin(String(v))}>{v}</button>)}
-      </div>
+      <h1 className="pin-title">Log on</h1>
+      <button className="primary-button login-button" onClick={() => setScreen('home')}>Login</button>
     </section>}
 
     {screen === 'home' && <section className="screen home-screen">
