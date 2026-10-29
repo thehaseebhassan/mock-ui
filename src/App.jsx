@@ -228,6 +228,14 @@ export default function App() {
     </section>}
 
     {screen === 'receipt' && <section className="screen receipt-screen">
+      <header className="receipt-header">
+        <RoundButton label="Close" onClick={() => setScreen('home')}><X/></RoundButton>
+        <strong>Receipt</strong>
+        <button className="share-button" onClick={() => {
+          const text = `Paid ${money(recipient.amount)} to ${recipient.name}\n${payId}\nReceipt no. N50937362892993`;
+          if (navigator.share) navigator.share({ title: 'Receipt', text }).catch(() => {});
+        }}>Share</button>
+      </header>
       <div className="success-icon"><Check/></div>
       <h1>Paid {money(recipient.amount)}</h1>
       <h2>to {recipient.name}</h2>
@@ -237,7 +245,7 @@ export default function App() {
       <div className="receipt-detail"><strong>From</strong><span>Smart Access<br/>(087-123 6516 8989)</span></div>
       <div className="receipt-detail"><strong>Description</strong><span>{recipient.description || 'No description'}</span></div>
       <div className="receipt-detail"><strong>Transaction Date</strong><span>{paidAt ? transactionStamp(paidAt) : ''}</span></div>
-      <button className="back-details" onClick={() => back('review')}>Back to details</button>
+      <p className="receipt-note">We'll send this payment immediately.</p>
     </section>}
 
     {screen === 'account' && <section className="screen account-screen">
