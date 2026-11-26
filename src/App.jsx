@@ -61,6 +61,36 @@ const DUMMY_TXNS = [
   { daysAgo: 6, name: "McDonald's", detail: 'Eating out', amount: 16.30 },
 ];
 
+function spendingCycleLabel(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Sydney',
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+  }).formatToParts(date);
+  const pick = (type) => Number(parts.find((part) => part.type === type)?.value);
+  let startMonth = pick('month');
+  let startYear = pick('year');
+  if (pick('day') < 13) {
+    startMonth -= 1;
+    if (startMonth < 1) {
+      startMonth = 12;
+      startYear -= 1;
+    }
+  }
+  let endMonth = startMonth + 1;
+  let endYear = startYear;
+  if (endMonth > 12) {
+    endMonth = 1;
+    endYear += 1;
+  }
+  const monthName = (month, year) => new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Sydney',
+    month: 'short',
+  }).format(new Date(Date.UTC(year, month - 1, 15, 2)));
+  return `See 13 ${monthName(startMonth, startYear)} – 12 ${monthName(endMonth, endYear)} spending`;
+}
+
 function txDate(daysAgo) {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
@@ -270,7 +300,7 @@ export default function App() {
       </div>
       <div className="acct-info">
         <RefreshCw size={22}/>
-        <span><strong>See 13 Oct – 12 Nov spending</strong><small>-$4,653.53 spend this month</small></span>
+        <span><strong>{spendingCycleLabel()}</strong><small>-$4,653.53 spend this month</small></span>
       </div>
       <div className="acct-info">
         <Calendar size={22}/>
